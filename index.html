@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        canvas {
+            margin: auto;
+            display: block;
+        }
+
+        .btn {
+            position: absolute;
+            width: 100%;
+            white-space: nowrap;
+            max-width: 7vw;
+            text-align: center;
+            background-color: #fffad3;
+            color: hsl(344, 100%, 66%);
+            border-style: solid;
+            border-color: hsl(344, 100%, 66%);
+            border-radius: 15px;
+            border-width: 1px;
+            padding: 0.8em 1.4em 0.8em 1.4em;
+            transition-duration: 0.2s;
+            font-family: 'Open Sans', sans-serif;
+            box-shadow: 1px 1px 10px -4px #c9c9c9;
+            font-size: 13px;
+            z-index: 1;
+            left: 20px;
+            top: 20px;
+        }
+
+        .btn:hover {
+            color: hsl(30, 93%, 60%);
+            border-color: hsl(25, 93%, 60%);
+            cursor: pointer;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+    </style>
+    <title>hi</title>
+</head>
+<body>
+<div class="btn"><b>Start simulation</b></div>
+<div class="input"></div>
+<script src="p5.js"></script>
+<script src="Vector.js"></script>
+<script src="Pendulum.js"></script>
+<script src="Main.js"></script>
+</body>
+</html>
