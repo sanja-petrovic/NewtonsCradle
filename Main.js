@@ -4,13 +4,14 @@ let button;
 let inputN;
 let width = window.innerWidth;
 let height = window.innerHeight;
-
+let n = 5;
 function setup() {
     createCanvas(width, height);
     inputN = createInput('Enter number of pendulums');
     inputN.position(22, 70);
     buttonStart = createButton('Start simulation');
-    createCradle(5);
+    buttonStart.mousePressed(inputEvent);
+    createCradle(n);
 }
 
 
@@ -25,18 +26,23 @@ function draw() {
     stroke(110, 110, 110);
     strokeWeight(1);
     fill(255, 246, 203);
-    rect(width/2 - 100 - 5*60+50, 270, 120*5 + 80, 30);
-    for(let i = 0; i < 5; i++) {
+    rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
+    for(let i = 0; i < n; i++) {
         pendulums[i].startF();
     }
 }
 
 function inputEvent() {
+    console.log('weee');
     pendulums = [];
     if(Number.isInteger(parseInt(inputN.value()))) {
+        n = parseInt(inputN.value());
         createCradle(inputN.value());
+        redraw();
     } else {
         createCradle(5);
+        n = 5;
+        redraw();
     }
 }
 
@@ -45,6 +51,7 @@ function createCradle(n) {
         let pendulum = new Pendulum(width/2 + 120*i - n*60+50, 300, width/2 + 120*i - n*60+50, 700, 60);
         pendulums.push(pendulum);
     }
+    rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
 }
 
 function setGradient(x, y, w, h, c1, c2, axis) {
