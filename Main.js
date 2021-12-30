@@ -5,6 +5,11 @@ let inputN;
 let width = window.innerWidth;
 let height = window.innerHeight;
 let n = 5;
+let xOffset = 0;
+let yOffset = 0;
+let locked = false;
+let selectedPendulum = 0;
+
 function setup() {
     createCanvas(width, height);
     inputN = createInput('Enter number of pendulums');
@@ -18,6 +23,15 @@ function setup() {
 let pendulums = [];
 
 
+function overPendulum(size, position) {
+    if(mouseX > position.x - size && mouseX < position.x + size
+        && mouseY > position.y - size && mouseY < position.y + size) {
+        return true;
+    }
+    return false;
+}
+
+
 function draw() {
     background(255, 104, 196);
     let color1 = color(255, 135, 185);
@@ -27,9 +41,51 @@ function draw() {
     strokeWeight(1);
     fill(255, 246, 203);
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
-    for(let i = 0; i < n; i++) {
+    /*for(let i = 0; i < n; i++) {
         pendulums[i].startF();
+    }*/
+    for(let i = 0; i < n; i++) {
+        pendulums[i].init();
     }
+}
+
+function mousePressed() {
+    /*if(overPendulum(pendulums[0].r, pendulums[0].position)) {
+        locked = true;
+        console.log('hi');
+    } else {
+        locked = false;
+    }*/
+    for(let i = 0; i < n; i++) {
+        if(overPendulum(pendulums[i].r, pendulums[i].position)) {
+            locked = true;
+            selectedPendulum = i;
+            console.log(selectedPendulum);
+            console.log('xoffset: ' +  xOffset + ', pos:' + pendulums[selectedPendulum].position.x + ', mouse:' + mouseX)
+            xOffset = mouseX - pendulums[selectedPendulum].position.x;
+            console.log(xOffset);
+            yOffset = mouseY - pendulums[selectedPendulum].position.y;
+            break;
+        } else {
+            locked = false;
+        }
+
+    }
+}
+
+function mouseDragged() {
+    if(locked) {
+        pendulums[selectedPendulum].setPosition(mouseX - xOffset, mouseY - yOffset);
+        console.log(mouseX - xOffset);
+        console.log(selectedPendulum + 'yi');
+        xOffset = 0;
+        yOffset = 0;
+    }
+}
+
+function mouseReleased() {
+
+    locked = false;
 }
 
 function inputEvent() {
