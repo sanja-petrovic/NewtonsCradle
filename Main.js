@@ -5,6 +5,12 @@ let inputN;
 let width = window.innerWidth;
 let height = window.innerHeight;
 let n = 5;
+let xOffset = 0;
+let yOffset = 0;
+let locked = false;
+let x = 0;
+let y = 0;
+
 function setup() {
     createCanvas(width, height);
     inputN = createInput('Enter number of pendulums');
@@ -17,6 +23,13 @@ function setup() {
 
 let pendulums = [];
 
+function overPendulum(size, position) {
+    if(mouseX > position.x - size && mouseX < position.x + size
+    && mouseY > position.y - size && mouseY < position.y + size) {
+        return true;
+    }
+    return false;
+}
 
 function draw() {
     background(255, 104, 196);
@@ -28,8 +41,39 @@ function draw() {
     fill(255, 246, 203);
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
     for(let i = 0; i < n; i++) {
-        pendulums[i].startF();
+        pendulums[i].setAngle(0);
+        pendulums[i].init();
     }
+    if(overPendulum(pendulums[0].r, pendulums[0].position)) {
+        if(mouseIsPressed) {
+            console.log('weee');
+        }
+    } else {
+        console.log('no');
+    }
+
+}
+
+function mousePressed() {
+    if(overPendulum(pendulums[0].r, pendulums[0].position)) {
+        locked = true;
+        console.log('hi');
+    } else {
+        locked = false;
+    }
+    xOffset = mouseX - pendulums[0].position.x;
+    yOffset = mouseY - pendulums[0].position.y;
+}
+
+function mouseDragged() {
+    if (locked) {
+        pendulums[0].setPosition(mouseX - xOffset, mouseY - yOffset);
+    }
+    console.log('hi222');
+}
+
+function mouseReleased() {
+    locked = false;
 }
 
 function inputEvent() {
@@ -50,6 +94,8 @@ function createCradle(n) {
     for(let i = 0; i < n; i++) {
         let pendulum = new Pendulum(width/2 + 120*i - n*60+50, 300, width/2 + 120*i - n*60+50, 700, 60);
         pendulums.push(pendulum);
+        x = pendulum.position.x;
+        y = pendulum.position.y;
     }
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
 }
