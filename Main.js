@@ -41,29 +41,17 @@ function draw() {
     strokeWeight(1);
     fill(255, 246, 203);
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
-    /*for(let i = 0; i < n; i++) {
-        pendulums[i].startF();
-    }*/
     for(let i = 0; i < n; i++) {
         pendulums[i].init();
     }
 }
 
 function mousePressed() {
-    /*if(overPendulum(pendulums[0].r, pendulums[0].position)) {
-        locked = true;
-        console.log('hi');
-    } else {
-        locked = false;
-    }*/
     for(let i = 0; i < n; i++) {
         if(overPendulum(pendulums[i].r, pendulums[i].position)) {
             locked = true;
             selectedPendulum = i;
-            console.log(selectedPendulum);
-            console.log('xoffset: ' +  xOffset + ', pos:' + pendulums[selectedPendulum].position.x + ', mouse:' + mouseX)
             xOffset = mouseX - pendulums[selectedPendulum].position.x;
-            console.log(xOffset);
             yOffset = mouseY - pendulums[selectedPendulum].position.y;
             break;
         } else {
@@ -76,8 +64,6 @@ function mousePressed() {
 function mouseDragged() {
     if(locked) {
         pendulums[selectedPendulum].setPosition(mouseX - xOffset, mouseY - yOffset);
-        console.log(mouseX - xOffset);
-        console.log(selectedPendulum + 'yi');
         xOffset = 0;
         yOffset = 0;
     }
@@ -89,7 +75,6 @@ function mouseReleased() {
 }
 
 function inputEvent() {
-    console.log('weee');
     pendulums = [];
     if(Number.isInteger(parseInt(inputN.value()))) {
         n = parseInt(inputN.value());

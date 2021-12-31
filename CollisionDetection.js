@@ -6,11 +6,11 @@ class CollisionDetection {
     }
 
     detect() {
-        let dx = this.circle1.pos.x + this.circle1.radius - this.circle2.pos.x - this.circle2.radius;
-        let dy = this.circle1.pos.y + this.circle1.radius - this.circle2.pos.y - this.circle2.radius;
+        let dx = this.circle1.position.x + this.circle1.r - this.circle2.position.x - this.circle2.r;
+        let dy = this.circle1.position.y + this.circle1.r - this.circle2.position.y - this.circle2.r;
         let distance = Math.sqrt(dx*dx + dy*dy);
 
-        if(distance <= this.circle1.radius + this.circle2.radius) {
+        if(distance <= this.circle1.r + this.circle2.r) {
             console.log("Collision detected!");
         } else {
             console.log("Hmm");

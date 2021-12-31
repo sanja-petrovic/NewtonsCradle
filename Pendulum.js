@@ -1,3 +1,4 @@
+
 class Pendulum {
 
     constructor(startX, startY, posX, posY, radius) {
@@ -7,10 +8,11 @@ class Pendulum {
         this.angularVelocity = 0;
         this.angularAcceleration = 0;
         this.angle = radians(60);
-        this.length = this.start.y - this.position.y;
+        this.posMagnitude = this.position.mag();
     }
 
     init() {
+        this.length = this.position.y - this.start.y;
         stroke(43, 43, 43);
         line(this.start.x, this.start.y, this.position.x, this.position.y);
         stroke(110, 110, 110);
@@ -33,8 +35,19 @@ class Pendulum {
     }
 
     setPosition(x, y) {
-        this.position = createVector(x, y);
+        let newPos = createVector(x, y);
+        let newAngle = newPos.angleBetween(this.position);
+        let newAngle2 = this.position.angleBetween(newPos);
+        let distVect = p5.Vector.sub(this.start, this.position);
+        console.log(degrees(distVect.heading()), newAngle2);
+        if(distVect.heading() + newAngle2 > radians(-10) || distVect.heading() + newAngle2 < radians(-165)) {
+        } else {
+            distVect.rotate(newAngle2);
+        }
+        this.position = p5.Vector.sub(this.start, distVect);
+
     }
+
 
     startF() {
         let gravity = 0.4;
