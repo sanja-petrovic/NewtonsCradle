@@ -21,6 +21,7 @@ class Pendulum {
         fill(255, 246, 203);
         ellipseMode(CENTER);
         ellipse(this.position.x, this.position.y, this.ballr, this.ballr);
+
     }
 
     update() {

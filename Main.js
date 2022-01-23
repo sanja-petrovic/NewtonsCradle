@@ -42,6 +42,7 @@ function draw() {
     for(let i = 0; i < n; i++) {
         pendulums[i].init();
         pendulums[i].update();
+
     }
 
 }
