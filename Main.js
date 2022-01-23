@@ -1,4 +1,3 @@
-
 let buttonStart = document.getElementById("btn");
 let button;
 let inputN;
@@ -25,7 +24,7 @@ let pendulums = [];
 
 function overPendulum(size, position) {
     if(mouseX > position.x - size && mouseX < position.x + size
-    && mouseY > position.y - size && mouseY < position.y + size) {
+        && mouseY > position.y - size && mouseY < position.y + size) {
         return true;
     }
     return false;
@@ -41,15 +40,8 @@ function draw() {
     fill(255, 246, 203);
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
     for(let i = 0; i < n; i++) {
-        pendulums[i].setAngle(0);
         pendulums[i].init();
-    }
-    if(overPendulum(pendulums[0].r, pendulums[0].position)) {
-        if(mouseIsPressed) {
-            console.log('weee');
-        }
-    } else {
-        console.log('no');
+        pendulums[i].update();
     }
 
 }
@@ -92,7 +84,7 @@ function inputEvent() {
 
 function createCradle(n) {
     for(let i = 0; i < n; i++) {
-        let pendulum = new Pendulum(width/2 + 120*i - n*60+50, 300, width/2 + 120*i - n*60+50, 700, 60);
+        let pendulum = new Pendulum(width/2 + 120*i - n*60+50, 300, width/2 + 120*i - n*60+50, 700, 400);
         pendulums.push(pendulum);
         x = pendulum.position.x;
         y = pendulum.position.y;
@@ -120,4 +112,3 @@ function setGradient(x, y, w, h, c1, c2, axis) {
 
     //reference: https://p5js.org/examples/color-linear-gradient.html
 }
-
