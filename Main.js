@@ -1,4 +1,3 @@
-
 let buttonStart = document.getElementById("btn");
 let button;
 let inputN;
@@ -8,7 +7,8 @@ let n = 5;
 let xOffset = 0;
 let yOffset = 0;
 let locked = false;
-let selectedPendulum = 0;
+let x = 0;
+let y = 0;
 
 function setup() {
     createCanvas(width, height);
@@ -22,7 +22,6 @@ function setup() {
 
 let pendulums = [];
 
-
 function overPendulum(size, position) {
     if(mouseX > position.x - size && mouseX < position.x + size
         && mouseY > position.y - size && mouseY < position.y + size) {
@@ -30,7 +29,6 @@ function overPendulum(size, position) {
     }
     return false;
 }
-
 
 function draw() {
     background(255, 104, 196);
@@ -43,38 +41,35 @@ function draw() {
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
     for(let i = 0; i < n; i++) {
         pendulums[i].init();
+        pendulums[i].update();
     }
+
 }
 
 function mousePressed() {
-    for(let i = 0; i < n; i++) {
-        if(overPendulum(pendulums[i].r, pendulums[i].position)) {
-            locked = true;
-            selectedPendulum = i;
-            xOffset = mouseX - pendulums[selectedPendulum].position.x;
-            yOffset = mouseY - pendulums[selectedPendulum].position.y;
-            break;
-        } else {
-            locked = false;
-        }
-
+    if(overPendulum(pendulums[0].r, pendulums[0].position)) {
+        locked = true;
+        console.log('hi');
+    } else {
+        locked = false;
     }
+    xOffset = mouseX - pendulums[0].position.x;
+    yOffset = mouseY - pendulums[0].position.y;
 }
 
 function mouseDragged() {
-    if(locked) {
-        pendulums[selectedPendulum].setPosition(mouseX - xOffset, mouseY - yOffset);
-        xOffset = 0;
-        yOffset = 0;
+    if (locked) {
+        pendulums[0].setPosition(mouseX - xOffset, mouseY - yOffset);
     }
+    console.log('hi222');
 }
 
 function mouseReleased() {
-
     locked = false;
 }
 
 function inputEvent() {
+    console.log('weee');
     pendulums = [];
     if(Number.isInteger(parseInt(inputN.value()))) {
         n = parseInt(inputN.value());
@@ -89,8 +84,10 @@ function inputEvent() {
 
 function createCradle(n) {
     for(let i = 0; i < n; i++) {
-        let pendulum = new Pendulum(width/2 + 120*i - n*60+50, 300, width/2 + 120*i - n*60+50, 700, 60);
+        let pendulum = new Pendulum(width/2 + 120*i - n*60+50, 300, width/2 + 120*i - n*60+50, 700, 400);
         pendulums.push(pendulum);
+        x = pendulum.position.x;
+        y = pendulum.position.y;
     }
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
 }
@@ -115,4 +112,3 @@ function setGradient(x, y, w, h, c1, c2, axis) {
 
     //reference: https://p5js.org/examples/color-linear-gradient.html
 }
-
