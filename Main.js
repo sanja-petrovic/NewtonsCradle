@@ -17,6 +17,10 @@ function setup() {
     buttonStart = createButton('Start simulation');
     buttonStart.mousePressed(inputEvent);
     createCradle(n);
+    for(let i = 0; i < n; i++) {
+        pendulums[i].setAngle(0);
+        pendulums[i].init();
+    }
 }
 
 
@@ -40,29 +44,32 @@ function draw() {
     fill(255, 246, 203);
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
     for(let i = 0; i < n; i++) {
-        pendulums[i].init();
-        pendulums[i].update();
-
+        pendulums[i].draw();
     }
+    pendulums[0].update();
+
+    let colDet = new CollisionDetection(pendulums[0], pendulums[1]);
+    colDet.detect();
+
 
 }
 
 function mousePressed() {
-    if(overPendulum(pendulums[0].r, pendulums[0].position)) {
+    if(overPendulum(pendulums[0].ballr*2, pendulums[0].position)) {
         locked = true;
+        xOffset = mouseX - pendulums[0].position.x;
+        yOffset = mouseY - pendulums[0].position.y;
         console.log('hi');
     } else {
         locked = false;
     }
-    xOffset = mouseX - pendulums[0].position.x;
-    yOffset = mouseY - pendulums[0].position.y;
 }
 
 function mouseDragged() {
     if (locked) {
         pendulums[0].setPosition(mouseX - xOffset, mouseY - yOffset);
+        pendulums[0].update();
     }
-    console.log('hi222');
 }
 
 function mouseReleased() {
