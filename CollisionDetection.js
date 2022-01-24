@@ -12,8 +12,9 @@ class CollisionDetection {
         let distance = Math.sqrt(dx*dx + dy*dy);
 
         if(distance < this.circle1.ballr + this.circle2.ballr) {
-            //this.circle1.stop();
-            this.circle2.update();
+            /*this.circle1.stop();
+            this.circle2.update();*/
+
             console.log("Collision detected!");
         } else {
             console.log("Hmm");

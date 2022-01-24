@@ -18,7 +18,6 @@ function setup() {
     buttonStart.mousePressed(inputEvent);
     createCradle(n);
     for(let i = 0; i < n; i++) {
-        pendulums[i].setAngle(0);
         pendulums[i].init();
     }
 }

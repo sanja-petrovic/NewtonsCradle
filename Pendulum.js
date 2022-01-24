@@ -33,6 +33,8 @@ class Pendulum {
         this.angularAcceleration = (-1 * gravity / this.r) * sin(this.angle);
         this.angularVelocity += this.angularAcceleration;
         this.angle += this.angularVelocity;
+        this.position.set(this.r * sin(this.angle), this.r * cos(this.angle), 0); // Polar to cartesian conversion
+        this.position.add(this.start); // Make sure the position is relative to the pendulum's origin
     }
 
     stop() {
