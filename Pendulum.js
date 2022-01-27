@@ -26,24 +26,27 @@ class Pendulum {
         ellipse(this.position.x, this.position.y, this.ballr*2);
     }
 
-    update() {
+    move() {
         if(!this.dragged) {
-            let gravity = 0.4;
+            let gravity = 0.8;
             this.angularAcceleration = (-1 * gravity / this.length) * sin(this.angle);
             this.angularVelocity += this.angularAcceleration;
             this.angularVelocity *= this.friction;
             this.angle += this.angularVelocity;
         }
+    }
+
+    update() {
+        this.move();
         this.draw();
     }
 
     stop() {
-        this.angle = 0;
-        this.angularVelocity = 0;
+        this.angularVelocity = - this.elasticity * this.angularVelocity;
         this.angularAcceleration = 0;
     }
 
-    handleClick(mx, my) {
+    onClick(mx, my) {
         let d = dist(mx, my, this.position.x, this.position.y);
         if (d < this.ballr) {
             this.dragged = true;
@@ -52,14 +55,15 @@ class Pendulum {
 
     stopDragging() {
         if(this.dragged) {
-            this.angularVelocity = 0;
             this.dragged = false;
+            this.angularVelocity = 0;
         }
     }
 
-    handleDrag(mx, my) {
+    drag(mx, my, offset) {
         if(this.dragged) {
             let mousePos = createVector(mx, my);
+            mousePos.add(offset);
             let diff = p5.Vector.sub(this.start, mousePos);
             this.angle = atan2(-1*diff.y, -diff.x) - PI/2;
         }

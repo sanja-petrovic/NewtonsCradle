@@ -10,6 +10,8 @@ let locked = false;
 let x = 0;
 let y = 0;
 let selectedPendulum;
+let selected = false;
+let directionLock = false;
 
 function setup() {
     createCanvas(width, height);
@@ -47,29 +49,94 @@ function draw() {
         pendulums[i].update();
     }
 
-    for(let i = 0; i < n - 1; i++) {
-        let colDet = new CollisionDetection(pendulums[i], pendulums[i+1]);
-        colDet.detect();
+    if(selectedPendulum != null) {
+        if(direction === "l") {
+                for(let i = 0; i < n - 1; i++) {
+                    let colDet = new CollisionDetection(pendulums[i], pendulums[i+1]);
+                    colDet.detect();
+                }
+        } else if(direction === "r") {
+                for(let i = n - 1; i > 0; i--) {
+                    let colDet = new CollisionDetection(pendulums[i], pendulums[i-1]);
+                    colDet.detect();
+                }
+
+        }
+    } else {
+        for(let i = 0; i < n - 1; i++) {
+            let colDet = new CollisionDetection(pendulums[i], pendulums[i+1]);
+            colDet.detect();
+        }
+        for(let i = n - 1; i > 0; i--) {
+            let colDet = new CollisionDetection(pendulums[i], pendulums[i-1]);
+            colDet.detect();
+        }
     }
 
 
 }
 
 function mousePressed() {
-    for(let i = 0; i < n; i++) {
-        if(overPendulum(pendulums[i].ballr, pendulums[i].position)) {
+    for (let i = 0; i < n; i++) {
+        if (overPendulum(pendulums[i].ballr, pendulums[i].position)) {
+            selected = true;
             selectedPendulum = i;
         }
     }
-    pendulums[selectedPendulum].handleClick(mouseX, mouseY);
+    pendulums[0].onClick(mouseX, mouseY);
 }
 
+function mouseDirection() {
+    if(pmouseX > mouseX) {
+        return "l";
+    }
+    else if(pmouseX < mouseX) {
+        return "r";
+    }
+}
+
+
+let direction;
 function mouseDragged() {
-    pendulums[selectedPendulum].handleDrag(mouseX, mouseY);
+    if(!directionLock) {
+        direction = mouseDirection();
+        directionLock = true;
+    }
+
+    if(direction === "l") {
+        for(let i = 0; i <= selectedPendulum; i++) {
+            pendulums[i].dragged = true;
+            let offset = (i - selectedPendulum) * pendulums[i].ballr*2;
+            pendulums[i].drag(mouseX, mouseY, offset);
+        }
+    } else if (direction === "r") {
+        for(let i = selectedPendulum; i < n; i++) {
+            pendulums[i].dragged = true;
+            let offset = (i - selectedPendulum) * pendulums[i].ballr*2;
+            pendulums[i].drag(mouseX, mouseY, offset);
+        }
+    }
+
 }
 
 function mouseReleased() {
-    pendulums[selectedPendulum].stopDragging();
+
+    if(selectedPendulum > 0) {
+        if(direction === "l") {
+            console.log("wee");
+            for(let i = selectedPendulum; i >= 0; i--) {
+                pendulums[i].stopDragging();
+            }
+        } else if(direction === "r") {
+            for(let i = selectedPendulum; i < n; i++) {
+                pendulums[i].stopDragging();
+            }
+        }
+    } else {
+        pendulums[selectedPendulum].stopDragging();
+    }
+    selected = false;
+    directionLock = false;
 }
 
 function inputEvent() {
