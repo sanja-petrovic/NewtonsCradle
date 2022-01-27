@@ -7,17 +7,13 @@ class CollisionDetection {
     }
 
     detect() {
-        let dx = this.circle1.position.x + this.circle1.ballr - this.circle2.position.x - this.circle2.ballr;
-        let dy = this.circle1.position.y + this.circle1.ballr - this.circle2.position.y - this.circle2.ballr;
-        let distance = Math.sqrt(dx*dx + dy*dy);
+        let dx = (this.circle1.position.x + this.circle1.ballr) - (this.circle2.position.x + this.circle2.ballr);
+        let dy = (this.circle1.position.y + this.circle1.ballr) - (this.circle2.position.y + this.circle2.ballr);
+        let distance = Math.sqrt(dx * dx + dy * dy);
 
-        if(distance < this.circle1.ballr + this.circle2.ballr) {
-            /*this.circle1.stop();
-            this.circle2.update();*/
-
-            console.log("Collision detected!");
+        if (distance <= this.circle1.ballr + this.circle2.ballr) {
+            this.circle1.stop();
         } else {
-            console.log("Hmm");
         }
     }
 

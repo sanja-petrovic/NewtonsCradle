@@ -9,6 +9,7 @@ let yOffset = 0;
 let locked = false;
 let x = 0;
 let y = 0;
+let selectedPendulum;
 
 function setup() {
     createCanvas(width, height);
@@ -18,7 +19,7 @@ function setup() {
     buttonStart.mousePressed(inputEvent);
     createCradle(n);
     for(let i = 0; i < n; i++) {
-        pendulums[i].init();
+        pendulums[i].draw();
     }
 }
 
@@ -43,36 +44,32 @@ function draw() {
     fill(255, 246, 203);
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
     for(let i = 0; i < n; i++) {
-        pendulums[i].draw();
+        pendulums[i].update();
     }
-    pendulums[0].update();
 
-    let colDet = new CollisionDetection(pendulums[0], pendulums[1]);
-    colDet.detect();
+    for(let i = 0; i < n - 1; i++) {
+        let colDet = new CollisionDetection(pendulums[i], pendulums[i+1]);
+        colDet.detect();
+    }
 
 
 }
 
 function mousePressed() {
-    if(overPendulum(pendulums[0].ballr*2, pendulums[0].position)) {
-        locked = true;
-        xOffset = mouseX - pendulums[0].position.x;
-        yOffset = mouseY - pendulums[0].position.y;
-        console.log('hi');
-    } else {
-        locked = false;
+    for(let i = 0; i < n; i++) {
+        if(overPendulum(pendulums[i].ballr, pendulums[i].position)) {
+            selectedPendulum = i;
+        }
     }
+    pendulums[selectedPendulum].handleClick(mouseX, mouseY);
 }
 
 function mouseDragged() {
-    if (locked) {
-        pendulums[0].setPosition(mouseX - xOffset, mouseY - yOffset);
-        pendulums[0].update();
-    }
+    pendulums[selectedPendulum].handleDrag(mouseX, mouseY);
 }
 
 function mouseReleased() {
-    locked = false;
+    pendulums[selectedPendulum].stopDragging();
 }
 
 function inputEvent() {
@@ -83,8 +80,8 @@ function inputEvent() {
         createCradle(inputN.value());
         redraw();
     } else {
-        createCradle(5);
         n = 5;
+        createCradle(5);
         redraw();
     }
 }
@@ -93,8 +90,7 @@ function createCradle(n) {
     for(let i = 0; i < n; i++) {
         let pendulum = new Pendulum(width/2 + 120*i - n*60+50, 300, width/2 + 120*i - n*60+50, 700, 400);
         pendulums.push(pendulum);
-        x = pendulum.position.x;
-        y = pendulum.position.y;
+        pendulum.draw();
     }
     rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
 }
