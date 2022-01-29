@@ -10,10 +10,14 @@ class CollisionDetection {
         let dx = (this.circle1.position.x + this.circle1.ballr) - (this.circle2.position.x + this.circle2.ballr);
         let dy = (this.circle1.position.y + this.circle1.ballr) - (this.circle2.position.y + this.circle2.ballr);
         let distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance <= this.circle1.ballr + this.circle2.ballr + 2) {
+        if (distance <= this.circle1.ballr + this.circle2.ballr) {
             this.circle1.stop();
+            this.detected = true;
         }
+    }
+
+    respond() {
+
     }
 
     getDetected() {

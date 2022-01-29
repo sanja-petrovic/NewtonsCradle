@@ -12,6 +12,8 @@ let y = 0;
 let selectedPendulum;
 let selected = false;
 let directionLock = false;
+let swingAngle = 0;
+let dt = 1;
 
 function setup() {
     createCanvas(width, height);
@@ -44,39 +46,33 @@ function draw() {
     stroke(110, 110, 110);
     strokeWeight(1);
     fill(255, 246, 203);
-    rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
+    rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30)
+
     for(let i = 0; i < n; i++) {
         pendulums[i].update();
     }
 
-    if(selectedPendulum != null) {
-        if(direction === "l") {
-                for(let i = 0; i < n - 1; i++) {
-                    let colDet = new CollisionDetection(pendulums[i], pendulums[i+1]);
-                    colDet.detect();
+    if(selected) {
+        if(direction === "l" && selectedPendulum != (n-1)) {
+            if(pendulums[selectedPendulum].detectCollision(pendulums[selectedPendulum + 1])) {
+                for(let i = 0; i < selectedPendulum; i++) {
+                    pendulums[i].angularVelocity = 0;
+                    pendulums[i].angle = 0;
                 }
-        } else if(direction === "r") {
-                for(let i = n - 1; i > 0; i--) {
-                    let colDet = new CollisionDetection(pendulums[i], pendulums[i-1]);
-                    colDet.detect();
+            }
+        } else if(direction === "r" && selectedPendulum != 0) {
+            if(pendulums[selectedPendulum].detectCollision(pendulums[selectedPendulum - 1])) {
+                for(let i = n - 1; i > selectedPendulum; i--) {
+                    pendulums[i].angularVelocity = 0;
+                    pendulums[i].angle = 0;
                 }
-
-        }
-    } else {
-        for(let i = 0; i < n - 1; i++) {
-            let colDet = new CollisionDetection(pendulums[i], pendulums[i+1]);
-            colDet.detect();
-        }
-        for(let i = n - 1; i > 0; i--) {
-            let colDet = new CollisionDetection(pendulums[i], pendulums[i-1]);
-            colDet.detect();
+            }
         }
     }
-
-
 }
 
 function mousePressed() {
+    selected = false;
     for (let i = 0; i < n; i++) {
         if (overPendulum(pendulums[i].ballr, pendulums[i].position)) {
             selected = true;
@@ -117,25 +113,23 @@ function mouseDragged() {
         }
     }
 
+    swingAngle = pendulums[selectedPendulum].angle;
 }
 
 function mouseReleased() {
 
-    if(selectedPendulum > 0) {
-        if(direction === "l") {
-            console.log("wee");
-            for(let i = selectedPendulum; i >= 0; i--) {
-                pendulums[i].stopDragging();
-            }
-        } else if(direction === "r") {
-            for(let i = selectedPendulum; i < n; i++) {
-                pendulums[i].stopDragging();
-            }
+    if(direction === "l") {
+        console.log("wee");
+        for(let i = selectedPendulum; i >= 0; i--) {
+            pendulums[i].stopDragging();
         }
-    } else {
-        pendulums[selectedPendulum].stopDragging();
+    } else if(direction === "r") {
+        for(let i = selectedPendulum; i < n; i++) {
+            pendulums[i].stopDragging();
+            console.log(pendulums[n-1].dragged);
+        }
     }
-    selected = false;
+    //selected = false;
     directionLock = false;
 }
 
