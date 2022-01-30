@@ -3,6 +3,7 @@ class Pendulum {
     constructor(startX, startY, posX, posY, length) {
         this.start = createVector(startX, startY);
         this.position = createVector();
+        this.positionInit = createVector(posX, posY);
         this.length = length;
         this.angularVelocity = 0;
         this.angularAcceleration = 0;
@@ -10,9 +11,10 @@ class Pendulum {
         this.ballr = 60;
         this.dragged = false;
         this.friction = 0.999;
-        this.elasticity = 0;
+        this.elasticity = 1;
         this.mass = 1;
-        this.maxTimeDelta = 0.1;
+        this.height = 0;
+        this.moving = false;
     }
 
     draw() {
@@ -24,11 +26,17 @@ class Pendulum {
         strokeWeight(1);
         fill(255, 246, 203);
         ellipseMode(CENTER);
-        ellipse(this.position.x, this.position.y, this.ballr*2);
+        ellipse(this.position.x, this.position.y, this.ballr * 2);
+    }
+
+    getVelocityVector() {
+       let velVec = createVector(this.position.x, this.position.y);
+       return velVec;
+       //line(velVec.x, velVec.y, this.positionInit.x, this.positionInit.y);
     }
 
     semiImplicitEuler() {
-        if(!this.dragged) {
+        if (!this.dragged) {
             let gravity = 0.4;
             this.angularAcceleration = (-1 * gravity / this.length) * sin(this.angle);
             this.angularVelocity += this.angularAcceleration * dt;
@@ -38,7 +46,7 @@ class Pendulum {
     }
 
     rk4(t) {
-        if(!this.dragged) {
+        if (!this.dragged) {
 
             let thetaCurrent = this.angle;
             let omegaCurrent = this.angularVelocity;
@@ -47,8 +55,10 @@ class Pendulum {
             let gravity = 9.81;
 
             function calculate(theta) {
-                return (-1 * gravity / length) * sin(theta);
+                return (-1 * gravity / length) * Math.sin(theta);
             }
+
+            this.angularAcceleration = calculate(this.angle);
 
             let k1theta = t * omegaCurrent;
             let k1omega = t * calculate(thetaCurrent);
@@ -71,61 +81,32 @@ class Pendulum {
     }
 
     update() {
-        this.rk4(0.5);
+        this.rk4(0.4);
         this.draw();
     }
 
-    stop() {
-        this.angularVelocity = - this.elasticity * this.angularVelocity;
-    }
-
-    onClick(mx, my) {
-        let d = dist(mx, my, this.position.x, this.position.y);
-        if (d < this.ballr) {
-            this.dragged = true;
-        }
-    }
-
     stopDragging() {
-        if(this.dragged) {
+        if (this.dragged) {
             this.dragged = false;
-            this.angularVelocity = 0;
         }
     }
 
     drag(mx, my, offset) {
-        if(this.dragged) {
+        if (this.dragged) {
             let mousePos = createVector(mx, my);
             mousePos.add(offset);
             let diff = p5.Vector.sub(this.start, mousePos);
-            this.angle = atan2(-1*diff.y, -diff.x) - PI/2;
+            this.angle = atan2(-1 * diff.y, -diff.x) - PI / 2;
         }
     }
 
     detectCollision(other) {
-        let d = dist(this.position.x, this.position.y, other.position.x, other.position.y);
-        if(d < this.ballr + other.ballr) {
-            this.angularVelocity = 0;
-            this.angle = 0; //treba mi elegantnije resenje za ovo
+        let dx = this.position.x - other.position.x;
+        let dy = this.position.y - other.position.y;
+        let d = dx * dx + dy * dy;
+        let radiusSum = this.ballr + other.ballr;
+        if (d <= radiusSum * radiusSum) {
             return true;
         }
     }
-}
-
-function closestPoint(startX, startY, endX, endY, pointX, pointY) {
-    let a1 = endY - startY
-    let b1 = startX - endX
-    let c1 = (endY - startY) * startX + (startX - endX) * startY;
-    let c2 = - b1 * pointX + a1 * pointY
-    let det = a1*a1 - -b1*b1;
-    let cx = 0;
-    let cy = 0;
-    if(det != 0) {
-        cx = (a1*c1 - b1*c2)/det;
-        cy = (a1*c2 - -b1*c1)/det;
-    } else {
-        cx = pointX;
-        cy = pointY;
-    }
-
 }
