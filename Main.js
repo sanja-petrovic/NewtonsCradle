@@ -18,6 +18,8 @@ let swingVector;
 let dt = 1;
 let startTime;
 let executeOnce = false;
+let selectionLock = false;
+let friction = false;
 
 function setup() {
     createCanvas(width, height);
@@ -27,6 +29,16 @@ function setup() {
     buttonStart.mousePressed(inputEvent);
     createCradle(n);
     frameRate(60);
+    textSize(20);
+    strokeWeight(0);
+    textStyle(NORMAL);
+
+    let gui = createGui(this);
+    let params = {
+      friction: [true, false],
+
+    };
+    gui.addObject(params);
 }
 
 let pendulums = [];
@@ -56,59 +68,73 @@ function draw() {
     if(selected) {
         if(direction === "l" && selectedPendulum != (n - 1)) {
             swingVelocity = pendulums[0].angularVelocity;
-            collisionLeftToRight();
+            collisionLeftToRight(selectedPendulum);
         } else if(direction === "r" && selectedPendulum != 0) {
             swingVelocity = pendulums[n-1].angularVelocity;
-            collisionRightToLeft();
+            collisionRightToLeft(selectedPendulum);
         }
     }
+
+
 }
 
 
-function collisionLeftToRight() {
-    if(pendulums[selectedPendulum].detectCollision(pendulums[selectedPendulum + 1])) {
-
-        for(let i = 0; i <= selectedPendulum; i++) {
+function collisionLeftToRight(index) {
+    if(pendulums[index].detectCollision(pendulums[index + 1])) {
+        console.log(index);
+        console.log(pendulums[index+1].angle);
+        for(let i = 0; i <= index; i++) {
             if(!pendulums[i].moving) {
-                console.log("hi " + i);
                 pendulums[i].angularVelocity = 0;
                 pendulums[i].angle = 0;
             }
         }
 
-        for(let i = n - 1 - selectedPendulum; i < n; i++) {
+        for(let i = n - 1 - index; i < n; i++) {
 
             //Zakon odrzanja impulsa kod Njutnovog klatna nalaze da:
             //inicijalna brzina = krajnja brzina
             //Ref: https://www.school-for-champions.com/science/newtons_cradle_derivation.htm
             pendulums[i].angularVelocity += swingVelocity;
             pendulums[i].moving = true;
-
         }
-        //selectedPendulum = n - 1 - selectedPendulum;
+
+        if(!selectionLock) {
+            selectedPendulum = n - 1 - index;
+            direction = "r";
+            for(let i = n - 1 - index; i < n; i++) {
+                pendulums[i].moving = false;
+            }
+        }
     }
+
 }
 
-function collisionRightToLeft() {
-    if(pendulums[selectedPendulum].detectCollision(pendulums[selectedPendulum - 1])) {
+function collisionRightToLeft(index) {
+    if(pendulums[index].detectCollision(pendulums[index - 1])) {
 
-        for(let i = n - 1; i >= selectedPendulum; i--) {
+        for(let i = n - 1; i >= index; i--) {
             if(!pendulums[i].moving) {
-                console.log("hi " + i);
                 pendulums[i].angularVelocity = 0;
                 pendulums[i].angle = 0;
             }
         }
 
-        for(let i = 0; i <= n - 1 - selectedPendulum; i++) {
+        for(let i = 0; i <= n - 1 - index; i++) {
             pendulums[i].angularVelocity += swingVelocity;
             pendulums[i].moving = true;
         }
 
-        //selectedPendulum = n - 1 - selectedPendulum;
+        if(!selectionLock) {
+            selectedPendulum = n - 1 - index;
+            direction = "l";
+            for(let i = 0; i <= n - 1 - index; i++) {
+                pendulums[i].moving = false;
+            }
+        }
+
     }
 }
-
 function mousePressed() {
     selectedCount = 0;
     selected = false;
@@ -120,6 +146,7 @@ function mousePressed() {
     }
     for (let i = 0; i < n; i++) {
         if (overPendulum(pendulums[i].ballr, pendulums[i].position)) {
+            selectionLock = true;
             selected = true;
             selectedPendulum = i;
         }
@@ -153,6 +180,7 @@ function mouseDragged() {
             pendulums[i].drag(mouseX, mouseY, offset);
             swingAngle = pendulums[i].angle;
             pendulums[i].moving = false;
+            pendulums[i].height = mouseY;
         }
     } else if (direction === "r") {
         for(let i = selectedPendulum; i < n; i++) {
@@ -180,6 +208,7 @@ function mouseReleased() {
     }
     directionLock = false;
     startTime = 0;
+    selectionLock = false;
 }
 
 function inputEvent() {

@@ -10,7 +10,7 @@ class Pendulum {
         this.angle = radians(0);
         this.ballr = 60;
         this.dragged = false;
-        this.friction = 0.999;
+        this.friction = 0.99;
         this.elasticity = 1;
         this.mass = 1;
         this.height = 0;
@@ -33,6 +33,14 @@ class Pendulum {
        let velVec = createVector(this.position.x, this.position.y);
        return velVec;
        //line(velVec.x, velVec.y, this.positionInit.x, this.positionInit.y);
+    }
+
+    getVelocity() {
+        return this.ballr * this.angularVelocity;
+    }
+
+    getHeight() {
+        return (this.positionInit.y - this.position.y);
     }
 
     semiImplicitEuler() {
@@ -77,11 +85,15 @@ class Pendulum {
 
             this.angle = thetaNext;
             this.angularVelocity = omegaNext;
+
+            if(friction) {
+                this.angularVelocity *= this.friction;
+            }
         }
     }
 
     update() {
-        this.rk4(0.4);
+        this.rk4(0.5);
         this.draw();
     }
 
@@ -104,7 +116,8 @@ class Pendulum {
         let dx = this.position.x - other.position.x;
         let dy = this.position.y - other.position.y;
         let d = dx * dx + dy * dy;
-        let radiusSum = this.ballr + other.ballr;
+        let delayOffset = 0;
+        let radiusSum = this.ballr + other.ballr + delayOffset;
         if (d <= radiusSum * radiusSum) {
             return true;
         }
