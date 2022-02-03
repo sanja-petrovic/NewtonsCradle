@@ -237,6 +237,10 @@
             border-radius: 34px;
         }
 
+        .switchToggle:hover {
+            background-color: white;
+        }
+
         .switchToggle:before {
             position: absolute;
             content: "";
@@ -251,9 +255,14 @@
         }
 
 
+
         input:checked + .switchToggle {
             content: 'rk4';
             background-color: #69b9ff;
+        }
+
+        input:checked + .switchToggle:hover {
+            background-color: #1a98ff;
         }
 
         input:focus + .switchToggle {
@@ -281,6 +290,14 @@
         input:checked + .switchToggle:after {
             color: #dff0f7;
             content: 'runge-kutta 4';
+        }
+
+        ::-moz-selection {
+            background: #fcfcfc;
+        }
+
+        ::selection {
+            background: #fcfcfc;
         }
 
     </style>

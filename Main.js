@@ -118,7 +118,6 @@ function collisionLeftToRight(index) {
             }
         }
     }
-
 }
 
 function collisionRightToLeft(index) {
