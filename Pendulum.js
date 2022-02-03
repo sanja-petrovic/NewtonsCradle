@@ -8,10 +8,8 @@ class Pendulum {
         this.angularVelocity = 0;
         this.angularAcceleration = 0;
         this.angle = radians(0);
-        this.ballr = 60;
+        this.radius = 60;
         this.dragged = false;
-        this.friction = 0.99;
-        this.elasticity = 1;
         this.mass = 1;
         this.height = 0;
         this.moving = false;
@@ -24,19 +22,18 @@ class Pendulum {
         line(this.start.x, this.start.y, this.position.x, this.position.y);
         stroke(110, 110, 110);
         strokeWeight(1);
-        fill(255, 246, 203);
+        fill('#f1f1f1');
         ellipseMode(CENTER);
-        ellipse(this.position.x, this.position.y, this.ballr * 2);
+        ellipse(this.position.x, this.position.y, this.radius * 2);
     }
 
     getVelocityVector() {
-       let velVec = createVector(this.position.x, this.position.y);
-       return velVec;
+       return createVector(this.position.x, this.position.y);
        //line(velVec.x, velVec.y, this.positionInit.x, this.positionInit.y);
     }
 
     getVelocity() {
-        return this.ballr * this.angularVelocity;
+        return this.radius * this.angularVelocity;
     }
 
     getHeight() {
@@ -48,52 +45,60 @@ class Pendulum {
             let gravity = 0.4;
             this.angularAcceleration = (-1 * gravity / this.length) * sin(this.angle);
             this.angularVelocity += this.angularAcceleration * dt;
-            this.angularVelocity *= this.friction;
+            this.angularVelocity *= friction;
             this.angle += this.angularVelocity * dt;
         }
     }
 
-    rk4(t) {
+    rk4(h) {
         if (!this.dragged) {
 
-            let thetaCurrent = this.angle;
-            let omegaCurrent = this.angularVelocity;
             let length = this.length;
-
             let gravity = 9.81;
 
-            function calculate(theta) {
+            //ω' = α
+            function fVelocity(theta) {
                 return (-1 * gravity / length) * Math.sin(theta);
             }
 
-            this.angularAcceleration = calculate(this.angle);
-
-            let k1theta = t * omegaCurrent;
-            let k1omega = t * calculate(thetaCurrent);
-
-            let k2theta = t * (omegaCurrent + 0.5 * t * k1omega);
-            let k2omega = t * calculate(thetaCurrent + 0.5 * t * k1theta);
-
-            let k3theta = t * (omegaCurrent + 0.5 * t * k2omega);
-            let k3omega = t * calculate(thetaCurrent + 0.5 * t * k2theta);
-
-            let k4theta = t * (omegaCurrent + t * k3omega);
-            let k4omega = t * calculate(thetaCurrent + t * k3theta);
-
-            let thetaNext = thetaCurrent + (t / 6) * (k1theta + 2 * k2theta + 2 * k3theta + k4theta);
-            let omegaNext = omegaCurrent + (t / 6) * (k1omega + 2 * k2omega + 2 * k3omega + k4omega);
-
-            this.angle = thetaNext;
-            this.angularVelocity = omegaNext;
-
-            if(friction) {
-                this.angularVelocity *= this.friction;
+            //θ' = ω
+            function fAngle(omega) {
+                return omega;
             }
+
+            let currentVel = this.angularVelocity;
+            let currentAngle = this.angle;
+
+            let angleA = fAngle(currentVel);
+            let velA = fVelocity(currentAngle);
+
+            let angleB = fAngle(currentVel + 1/2 * h * velA);
+            let velB = fVelocity(currentAngle + 1/2 * h * angleA);
+
+            let angleC = fAngle(currentVel + 1/2 * h * velB);
+            let velC = fVelocity(currentAngle + 1/2 * h * angleB);
+
+            let angleD = fAngle(currentVel + h * velC);
+            let velD = fVelocity(currentAngle + h * angleC);
+
+            let angleNext = currentAngle + h / 6 * (angleA + 2 * angleB + 2 * angleC + angleD);
+            let velNext = currentVel + h / 6 * (velA + 2 * velB + 2 * velC + velD);
+
+            this.angle = angleNext;
+            this.angularVelocity = velNext;
+            this.angularAcceleration = fVelocity(angleNext);
+
+            this.angularVelocity *= friction;
+
         }
     }
 
     update() {
-        this.rk4(0.5);
+        if(rk4) {
+            this.rk4(rk4step);
+        } else {
+            this.semiImplicitEuler();
+        }
         this.draw();
     }
 
@@ -117,7 +122,7 @@ class Pendulum {
         let dy = this.position.y - other.position.y;
         let d = dx * dx + dy * dy;
         let delayOffset = 0;
-        let radiusSum = this.ballr + other.ballr + delayOffset;
+        let radiusSum = this.radius + other.radius + delayOffset;
         if (d <= radiusSum * radiusSum) {
             return true;
         }

@@ -1,47 +1,50 @@
 let buttonStart = document.getElementById("btn");
 let button;
-let inputN;
 let width = window.innerWidth;
 let height = window.innerHeight;
 let n = 5;
-let xOffset = 0;
-let yOffset = 0;
-let locked = false;
-let x = 0;
-let y = 0;
 let selectedPendulum;
 let selected = false;
 let directionLock = false;
 let swingAngle = 0;
 let swingVelocity = 0;
-let swingVector;
 let dt = 1;
-let startTime;
-let executeOnce = false;
 let selectionLock = false;
-let friction = false;
+let friction = 1;
+let rk4step = 0.35;
+let rk4 = true;
+let pendulums = [];
+
+
+let sliderPend = document.getElementById("sliderPendulums");
+let sliderPendVal = document.getElementById("sliderPendValue");
+sliderPendVal.innerHTML = sliderPend.value;
+sliderPend.oninput = function () {
+    pendulums = [];
+    sliderPendVal.innerHTML = this.value;
+    n = this.value;
+    createCradle(n);
+}
+
+let sliderFriction = document.getElementById("sliderFriction");
+let frictionBox = document.getElementById("frictionBox");
+let frictionVal = document.getElementById("sliderFrValue");
+frictionVal.innerHTML = sliderFriction.value;
+sliderFriction.oninput = function () {
+    friction = this.value;
+    frictionVal.innerHTML = this.value;
+}
+
+let algorithmCheck = document.getElementById("algorithmCheck");
 
 function setup() {
     createCanvas(width, height);
-    inputN = createInput('Enter number of pendulums');
-    inputN.position(22, 70);
-    buttonStart = createButton('Start simulation');
-    buttonStart.mousePressed(inputEvent);
     createCradle(n);
     frameRate(60);
     textSize(20);
     strokeWeight(0);
     textStyle(NORMAL);
-
-    let gui = createGui(this);
-    let params = {
-      friction: [true, false],
-
-    };
-    gui.addObject(params);
 }
-
-let pendulums = [];
 
 function overPendulum(size, position) {
     if(mouseX > position.x - size && mouseX < position.x + size
@@ -53,16 +56,22 @@ function overPendulum(size, position) {
 
 function draw() {
     background(255, 104, 196);
-    let color1 = color(255, 135, 185);
-    let color2 = color(255, 231, 113);
-    setGradient(0, 0, 1920, 1080, color2, color1, "X");
+    let color2 = color('#8ffff9');
+    let color1 = color('#62e5ff');
+    setGradient(0, 0, 1920, 1080, color2, color1, "Y");
     stroke(110, 110, 110);
     strokeWeight(1);
-    fill(255, 246, 203);
-    rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30)
+    fill('#f1f1f1');
+    rect(width/2 - 100 - n*60+60, 270, 120*n + 80, 30);
 
     for(let i = 0; i < n; i++) {
         pendulums[i].update();
+    }
+
+    if(algorithmCheck.checked) {
+        rk4 = true;
+    } else {
+        rk4 = false;
     }
 
     if(selected) {
@@ -86,6 +95,8 @@ function collisionLeftToRight(index) {
         for(let i = 0; i <= index; i++) {
             if(!pendulums[i].moving) {
                 pendulums[i].angularVelocity = 0;
+                //Reference: https://www.wired.com/2011/10/how-to-model-newtons-cradle/
+                // 'So this leaves the case of v2f = 0, or the ball that was initially moving ends up at rest.'
                 pendulums[i].angle = 0;
             }
         }
@@ -136,7 +147,6 @@ function collisionRightToLeft(index) {
     }
 }
 function mousePressed() {
-    selectedCount = 0;
     selected = false;
     selectedPendulum = -1;
     for(let i = 0; i < n; i++) {
@@ -145,7 +155,7 @@ function mousePressed() {
         pendulums[i].angle = 0;
     }
     for (let i = 0; i < n; i++) {
-        if (overPendulum(pendulums[i].ballr, pendulums[i].position)) {
+        if (overPendulum(pendulums[i].radius, pendulums[i].position)) {
             selectionLock = true;
             selected = true;
             selectedPendulum = i;
@@ -176,7 +186,7 @@ function mouseDragged() {
     if(direction === "l") {
         for(let i = 0; i <= selectedPendulum; i++) {
             pendulums[i].dragged = true;
-            let offset = (i - selectedPendulum) * pendulums[i].ballr*2;
+            let offset = (i - selectedPendulum) * pendulums[i].radius*2;
             pendulums[i].drag(mouseX, mouseY, offset);
             swingAngle = pendulums[i].angle;
             pendulums[i].moving = false;
@@ -185,7 +195,7 @@ function mouseDragged() {
     } else if (direction === "r") {
         for(let i = selectedPendulum; i < n; i++) {
             pendulums[i].dragged = true;
-            let offset = (i - selectedPendulum) * pendulums[i].ballr*2;
+            let offset = (i - selectedPendulum) * pendulums[i].radius*2;
             pendulums[i].drag(mouseX, mouseY, offset);
             swingAngle = pendulums[i].angle;
             pendulums[i].moving = false;
@@ -207,31 +217,30 @@ function mouseReleased() {
         }
     }
     directionLock = false;
-    startTime = 0;
     selectionLock = false;
 }
 
-function inputEvent() {
+function restartSim() {
     pendulums = [];
-    if(Number.isInteger(parseInt(inputN.value()))) {
-        n = parseInt(inputN.value());
-        createCradle(inputN.value());
-        redraw();
-    } else {
-        n = 5;
-        createCradle(5);
-        redraw();
-    }
+    n = 5;
+    createCradle(5);
+    sliderPend.value = 5;
+    friction = 1;
+    sliderFriction.value = 1;
+    sliderPendVal.innerHTML = 5;
+    frictionVal.innerHTML = 1;
+    rk4 = true;
+    algorithmCheck.checked = true;
+    redraw();
 }
 
 function createCradle(n) {
     pendulums = [];
     for(let i = 0; i < n; i++) {
-        let pendulum = new Pendulum(width/2 + 120*i - n*60+50, 300, width/2 + 120*i - n*60+50, 700, 400);
+        let pendulum = new Pendulum(width/2 + 120*i - n*60+60, 300, width/2 + 120*i - n*60+60, 700, 400);
         pendulums.push(pendulum);
         pendulum.draw();
     }
-    rect(width/2 - 100 - n*60+50, 270, 120*n + 80, 30);
 }
 
 function setGradient(x, y, w, h, c1, c2, axis) {
