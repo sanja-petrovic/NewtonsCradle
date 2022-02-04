@@ -15,7 +15,6 @@ let rk4step = 0.35;
 let rk4 = true;
 let pendulums = [];
 
-
 let sliderPend = document.getElementById("sliderPendulums");
 let sliderPendVal = document.getElementById("sliderPendValue");
 sliderPendVal.innerHTML = sliderPend.value;
@@ -27,7 +26,6 @@ sliderPend.oninput = function () {
 }
 
 let sliderFriction = document.getElementById("sliderFriction");
-let frictionBox = document.getElementById("frictionBox");
 let frictionVal = document.getElementById("sliderFrValue");
 frictionVal.innerHTML = sliderFriction.value;
 sliderFriction.oninput = function () {
@@ -74,16 +72,13 @@ function draw() {
         rk4 = false;
     }
 
-    if(selected) {
-        if(direction === "l" && selectedPendulum != (n - 1)) {
-            swingVelocity = pendulums[0].angularVelocity;
-            collisionLeftToRight(selectedPendulum);
-        } else if(direction === "r" && selectedPendulum != 0) {
-            swingVelocity = pendulums[n-1].angularVelocity;
-            collisionRightToLeft(selectedPendulum);
+    let collision = new Collision();
+
+    for(let i = 0; i < n-1; i++) {
+        for(let j = i+1; j < n; j++) {
+            collision.findCollisionFeatures(pendulums[i], pendulums[j]);
         }
     }
-
 
 }
 
@@ -106,7 +101,7 @@ function collisionLeftToRight(index) {
             //Zakon odrzanja impulsa kod Njutnovog klatna nalaze da:
             //inicijalna brzina = krajnja brzina
             //Ref: https://www.school-for-champions.com/science/newtons_cradle_derivation.htm
-            pendulums[i].angularVelocity += swingVelocity;
+            pendulums[i].angularVelocity += swingVelocity * friction;
             pendulums[i].moving = true;
         }
 
@@ -122,7 +117,6 @@ function collisionLeftToRight(index) {
 
 function collisionRightToLeft(index) {
     if(pendulums[index].detectCollision(pendulums[index - 1])) {
-
         for(let i = n - 1; i >= index; i--) {
             if(!pendulums[i].moving) {
                 pendulums[i].angularVelocity = 0;
@@ -131,7 +125,7 @@ function collisionRightToLeft(index) {
         }
 
         for(let i = 0; i <= n - 1 - index; i++) {
-            pendulums[i].angularVelocity += swingVelocity;
+            pendulums[i].angularVelocity += swingVelocity * friction;
             pendulums[i].moving = true;
         }
 
@@ -188,7 +182,7 @@ function mouseDragged() {
             let offset = (i - selectedPendulum) * pendulums[i].radius*2;
             pendulums[i].drag(mouseX, mouseY, offset);
             swingAngle = pendulums[i].angle;
-            pendulums[i].moving = false;
+            //pendulums[i].moving = false;
             pendulums[i].height = mouseY;
         }
     } else if (direction === "r") {
@@ -197,7 +191,7 @@ function mouseDragged() {
             let offset = (i - selectedPendulum) * pendulums[i].radius*2;
             pendulums[i].drag(mouseX, mouseY, offset);
             swingAngle = pendulums[i].angle;
-            pendulums[i].moving = false;
+            //pendulums[i].moving = false;
         }
     }
 

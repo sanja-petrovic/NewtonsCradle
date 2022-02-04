@@ -205,7 +205,7 @@
         #sliderFrValue {
             position: absolute;
             top: 148px;
-            left: 107px;
+            left: 214px;
         }
 
         .switch {
@@ -253,8 +253,6 @@
             transition: .4s;
             border-radius: 50%;
         }
-
-
 
         input:checked + .switchToggle {
             content: 'rk4';
@@ -308,7 +306,7 @@
 
 <div class="restartBtn" onclick="restartSim()"><b>restart</b></div>
 <div class="input"></div>
-<div class="frictionTitle">friction:</div>
+<div class="frictionTitle">coefficient of restitution:</div>
 <div class="sliderValue" id="sliderFrValue"></div>
 <div class="frictionInput">
     <input type="range" min="0.9" max="1" value="1" step="0.001" class="slider" id="sliderFriction">
@@ -334,6 +332,8 @@
 <div class="pendulumNum">pendulums:</div>
 <script src="p5.js"></script>
 <script src="Pendulum.js"></script>
+<script src="CollisionManifold.js"></script>
+<script src="Collision.js"></script>
 <script src="Main.js"></script>
 
 </body>

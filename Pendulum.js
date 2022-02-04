@@ -29,7 +29,6 @@ class Pendulum {
 
     getVelocityVector() {
        return createVector(this.position.x, this.position.y);
-       //line(velVec.x, velVec.y, this.positionInit.x, this.positionInit.y);
     }
 
     getVelocity() {
@@ -87,8 +86,6 @@ class Pendulum {
             this.angle = angleNext;
             this.angularVelocity = velNext;
             this.angularAcceleration = fVelocity(angleNext);
-
-            this.angularVelocity *= friction;
 
         }
     }
