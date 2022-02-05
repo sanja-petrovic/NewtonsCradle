@@ -1,6 +1,6 @@
 class Pendulum {
 
-    constructor(startX, startY, posX, posY, length) {
+    constructor(startX, startY, posX, posY, length, id) {
         this.start = createVector(startX, startY);
         this.position = createVector();
         this.positionInit = createVector(posX, posY);
@@ -13,6 +13,7 @@ class Pendulum {
         this.mass = 1;
         this.height = 0;
         this.moving = false;
+        this.id = id;
     }
 
     draw() {
@@ -41,7 +42,7 @@ class Pendulum {
 
     semiImplicitEuler() {
         if (!this.dragged) {
-            let gravity = 0.4;
+            let gravity = 0.7;
             this.angularAcceleration = (-1 * gravity / this.length) * sin(this.angle);
             this.angularVelocity += this.angularAcceleration * dt;
             this.angularVelocity *= friction;
