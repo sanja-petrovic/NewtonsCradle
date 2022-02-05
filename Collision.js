@@ -19,9 +19,9 @@ class Collision {
 
         let result = new CollisionManifold(depth, normal, contactPoint, a, b);
 
-        /*strokeWeight(10);
+        strokeWeight(10);
         point(contactPoint);
-*/
+
         return result;
     }
 

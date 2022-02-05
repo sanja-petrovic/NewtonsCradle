@@ -35,6 +35,7 @@ frictionVal.innerHTML = sliderFriction.value;
 sliderFriction.oninput = function () {
     friction = this.value;
     frictionVal.innerHTML = this.value;
+    createCradle(n);
 }
 
 let algorithmCheck = document.getElementById("algorithmCheck");
