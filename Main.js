@@ -10,10 +10,14 @@ let swingAngle = 0;
 let swingVelocity = 0;
 let dt = 1;
 let selectionLock = false;
-let friction = 1;
+let friction = 0.999;
 let rk4step = 0.35;
 let rk4 = true;
 let pendulums = [];
+let reverse = false;
+
+let island = new Island();
+let island2 = new Island();
 
 let sliderPend = document.getElementById("sliderPendulums");
 let sliderPendVal = document.getElementById("sliderPendValue");
@@ -52,6 +56,10 @@ function overPendulum(size, position) {
     return false;
 }
 
+
+
+let collisionList = [];
+
 function draw() {
     background(255, 104, 196);
     let color2 = color('#8ffff9');
@@ -72,21 +80,121 @@ function draw() {
         rk4 = false;
     }
 
+
+    if(selected) {
+        handleCollisions();
+    }
+
+}
+
+function handleCollisions() {
+    detectCollisions();
+    correctPositions();
+    resolveCollisions();
+
+    reverseDirections();
+    change();
+
+    collisionList = [];
+}
+
+function detectCollisions() {
     let collision = new Collision();
 
     for(let i = 0; i < n-1; i++) {
         for(let j = i+1; j < n; j++) {
-            collision.findCollisionFeatures(pendulums[i], pendulums[j]);
+            let result = collision.findCollisionFeatures(pendulums[i], pendulums[j]);
+            if(result != null && result.colliding) {
+                collisionList.push(result);
+                break;
+            }
         }
     }
+
+    if(direction === "r") {
+        collisionList.reverse();
+    }
+
+}
+
+function resolveCollisions() {
+    for(let j = 0; j < collisionList.length; j++) {
+        applyImpulse2(collisionList[j]);
+    }
+}
+
+function reverseDirections() {
+    if(!directionLock) {
+        if(direction === "r") {
+            direction = "l";
+        } else if(direction === "l") {
+            direction = "r";
+        }
+    }
+}
+
+function change() {
+    if(!selectionLock) {
+        selectedPendulum = n - 1 - selectedPendulum;
+        for(let i = selectedPendulum; i < n; i++) {
+            pendulums[i].moving = false;
+        }
+    }
+}
+
+function applyImpulse(manifold) {
+    if(manifold.c1.moving) {
+        manifold.c1.angle = 0;
+        manifold.c1.angularVelocity = 0;
+        manifold.c1.moving = false;
+        manifold.c2.angularVelocity = swingVelocity * friction;
+        manifold.c2.moving = true;
+    } else if(manifold.c2.moving) {
+        manifold.c1.angularVelocity = swingVelocity * friction;
+        manifold.c1.moving = true;
+        manifold.c2.angle = 0;
+        manifold.c2.angularVelocity = 0;
+        manifold.c2.moving = false;
+    }
+
+}
+
+
+function correctPositions() {
+    if(!selectionLock) {
+        for(let i = 0; i < collisionList.length; i++) {
+            if(!collisionList[i].c1.moving) {
+                collisionList[i].c1.angle = 0;
+            }
+            if(!collisionList[i].c2.moving) {
+                collisionList[i].c2.angle = 0;
+            }
+        }
+    }
+}
+
+function applyImpulse2(manifold) {
+
+    let invMass1 = 1 / manifold.c1.mass;
+    let invMass2 = 1 / manifold.c2.mass;
+    let invMassSum = invMass1 + invMass2;
+
+    let relativeVel = manifold.c2.getVelocity() - manifold.c1.getVelocity();
+    let j = (-(1 + friction) * relativeVel) / invMassSum;
+
+    let v1 = -j * invMass1;
+    let v2 = -j * invMass2;
+    let w1 = v1 / manifold.c1.radius;
+    let w2 = v2 / manifold.c2.radius;
+
+    manifold.c1.angularVelocity += w1;
+    manifold.c2.angularVelocity -= w2;
 
 }
 
 
 function collisionLeftToRight(index) {
     if(pendulums[index].detectCollision(pendulums[index + 1])) {
-        console.log(index);
-        console.log(pendulums[index+1].angle);
         for(let i = 0; i <= index; i++) {
             if(!pendulums[i].moving) {
                 pendulums[i].angularVelocity = 0;
@@ -167,7 +275,9 @@ function mouseDirection() {
 
 
 let direction;
+
 function mouseDragged() {
+    island.clear();
     if(!directionLock) {
         direction = mouseDirection();
         directionLock = true;
@@ -182,8 +292,7 @@ function mouseDragged() {
             let offset = (i - selectedPendulum) * pendulums[i].radius*2;
             pendulums[i].drag(mouseX, mouseY, offset);
             swingAngle = pendulums[i].angle;
-            //pendulums[i].moving = false;
-            pendulums[i].height = mouseY;
+            pendulums[i].moving = true;
         }
     } else if (direction === "r") {
         for(let i = selectedPendulum; i < n; i++) {
@@ -191,7 +300,7 @@ function mouseDragged() {
             let offset = (i - selectedPendulum) * pendulums[i].radius*2;
             pendulums[i].drag(mouseX, mouseY, offset);
             swingAngle = pendulums[i].angle;
-            //pendulums[i].moving = false;
+            pendulums[i].moving = true;
         }
     }
 
@@ -217,6 +326,13 @@ function restartSim() {
     pendulums = [];
     n = 5;
     createCradle(5);
+    for(let i = 0; i < n; i++) {
+        pendulums[i].angularVelocity = 0;
+        pendulums[i].angle = 0;
+        pendulums[i].angularAcceleration = 0;
+    }
+    swingVelocity = 0;
+    swingAngle = 0;
     sliderPend.value = 5;
     friction = 1;
     sliderFriction.value = 1;
@@ -224,6 +340,7 @@ function restartSim() {
     frictionVal.innerHTML = 1;
     rk4 = true;
     algorithmCheck.checked = true;
+    island.clear();
     redraw();
 }
 
