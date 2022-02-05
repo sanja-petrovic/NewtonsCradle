@@ -10,7 +10,7 @@ let swingAngle = 0;
 let swingVelocity = 0;
 let dt = 1;
 let selectionLock = false;
-let friction = 0.999;
+let friction = 1;
 let rk4step = 0.35;
 let rk4 = true;
 let pendulums = [];
@@ -33,7 +33,7 @@ let sliderFriction = document.getElementById("sliderFriction");
 let frictionVal = document.getElementById("sliderFrValue");
 frictionVal.innerHTML = sliderFriction.value;
 sliderFriction.oninput = function () {
-    friction = this.value;
+    friction = parseFloat(this.value.toString());
     frictionVal.innerHTML = this.value;
     createCradle(n);
 }
@@ -56,8 +56,6 @@ function overPendulum(size, position) {
     }
     return false;
 }
-
-
 
 let collisionList = [];
 
@@ -90,6 +88,7 @@ function draw() {
 
 function handleCollisions() {
     detectCollisions();
+    //editCollisionList();
     correctPositions();
     resolveCollisions();
 
@@ -134,6 +133,14 @@ function reverseDirections() {
     }
 }
 
+function editCollisionList() {
+    for(let i = 0; i < collisionList.length; i++) {
+        if(island.isInIsland(collisionList[i].c1) && island.isInIsland(collisionList[i].c2)) {
+            collisionList[i].colliding =  false;
+        }
+    }
+}
+
 function change() {
     if(!selectionLock) {
         selectedPendulum = n - 1 - selectedPendulum;
@@ -165,17 +172,18 @@ function correctPositions() {
     if(!selectionLock) {
         for(let i = 0; i < collisionList.length; i++) {
             if(!collisionList[i].c1.moving) {
-                collisionList[i].c1.angle = 0;
+                swingAngle = collisionList[i].c1.angle;
+                collisionList[i].c1.angle -= swingAngle;
             }
             if(!collisionList[i].c2.moving) {
-                collisionList[i].c2.angle = 0;
+                swingAngle = collisionList[i].c2.angle;
+                collisionList[i].c2.angle -= swingAngle;
             }
         }
     }
 }
 
 function applyImpulse2(manifold) {
-
     let invMass1 = 1 / manifold.c1.mass;
     let invMass2 = 1 / manifold.c2.mass;
     let invMassSum = invMass1 + invMass2;
@@ -188,10 +196,29 @@ function applyImpulse2(manifold) {
     let w1 = v1 / manifold.c1.radius;
     let w2 = v2 / manifold.c2.radius;
 
+    /*if(island.isInIsland(manifold.c1)) {
+        for(let i = 0; i < island.circles.length; i++) {
+            island.circles[i].angularVelocity += w1;
+        }
+    } else {
+        manifold.c1.angularVelocity += w1;
+    }
+
+    if(island.isInIsland(manifold.c2)) {
+        for(let i = 0; i < island.circles.length; i++) {
+            island.circles[i].angularVelocity -= w2;
+        }
+    } else {
+        manifold.c2.angularVelocity -= w2;
+    }*/
     manifold.c1.angularVelocity += w1;
     manifold.c2.angularVelocity -= w2;
-
 }
+
+//napravi posebnu funkciju ako je selected>1
+//u toj funkciji treba u sustini da se ta klatna ponasaju kao grupa
+//nadjemo brzinu prvog i onda ih sve tako selektujemo
+//c1->do selektovanog, c2->nadalje
 
 
 function collisionLeftToRight(index) {
@@ -278,30 +305,40 @@ function mouseDirection() {
 let direction;
 
 function mouseDragged() {
-    island.clear();
-    if(!directionLock) {
-        direction = mouseDirection();
-        directionLock = true;
-    }
-
-    if(mouseY < 600) {
-        mouseY = 600;
-    }
-    if(direction === "l") {
-        for(let i = 0; i <= selectedPendulum; i++) {
-            pendulums[i].dragged = true;
-            let offset = (i - selectedPendulum) * pendulums[i].radius*2;
-            pendulums[i].drag(mouseX, mouseY, offset);
-            swingAngle = pendulums[i].angle;
-            pendulums[i].moving = true;
+    if(selectionLock) {
+        island.clear();
+        if(!directionLock) {
+            direction = mouseDirection();
+            directionLock = true;
         }
-    } else if (direction === "r") {
-        for(let i = selectedPendulum; i < n; i++) {
-            pendulums[i].dragged = true;
-            let offset = (i - selectedPendulum) * pendulums[i].radius*2;
-            pendulums[i].drag(mouseX, mouseY, offset);
-            swingAngle = pendulums[i].angle;
-            pendulums[i].moving = true;
+
+        if(mouseY < 600) {
+            mouseY = 600;
+        }
+        if(direction === "l") {
+            for(let i = 0; i <= selectedPendulum; i++) {
+                pendulums[i].dragged = true;
+                let offset = (i - selectedPendulum) * pendulums[i].radius*2;
+                pendulums[i].drag(mouseX, mouseY, offset);
+                swingAngle = pendulums[i].angle;
+                pendulums[i].moving = false;
+                island.addCircle(pendulums[i]);
+            }
+        } else if (direction === "r") {
+            for(let i = selectedPendulum; i < n; i++) {
+                pendulums[i].dragged = true;
+                let offset = (i - selectedPendulum) * pendulums[i].radius*2;
+                pendulums[i].drag(mouseX, mouseY, offset);
+                swingAngle = pendulums[i].angle;
+                pendulums[i].moving = false;
+                island.addCircle(pendulums[i]);
+            }
+        }
+
+        if(island.circles.length > 1) {
+            island.setIndex(selectedPendulum);
+        } else {
+            island.clear();
         }
     }
 
@@ -310,13 +347,15 @@ function mouseDragged() {
 
 function mouseReleased() {
 
-    if(direction === "l") {
-        for(let i = selectedPendulum; i >= 0; i--) {
-            pendulums[i].stopDragging();
-        }
-    } else if(direction === "r") {
-        for(let i = selectedPendulum; i < n; i++) {
-            pendulums[i].stopDragging();
+    if(selectionLock) {
+        if(direction === "l") {
+            for(let i = selectedPendulum; i >= 0; i--) {
+                pendulums[i].stopDragging();
+            }
+        } else if(direction === "r") {
+            for(let i = selectedPendulum; i < n; i++) {
+                pendulums[i].stopDragging();
+            }
         }
     }
     directionLock = false;

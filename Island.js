@@ -7,20 +7,21 @@ class Island {
         this.circles.push(c1);
     }
 
+    setIndex(index) {
+        this.index = index;
+    }
+
     setAngle(angle) {
         for(let i = 0; i < this.circles.length; i++) {
-            this.circles[i].angle = angle;
+            if(!this.circles[i].moving) {
+                this.circles[i].angle = 0;
+            }
         }
     }
 
     setVelocity(angularVelocity) {
         for(let i = 0; i < this.circles.length; i++) {
-            this.circles[i].angularVelocity = angularVelocity;
-            if(angularVelocity !== 0) {
-                this.circles[i].moving = true;
-            } else {
-                this.circles[i].moving = false;
-            }
+            this.circles[i].angularVelocity += angularVelocity;
         }
     }
 

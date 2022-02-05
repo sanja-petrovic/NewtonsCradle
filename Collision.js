@@ -5,7 +5,7 @@ class Collision {
         let dy = a.position.y - b.position.y;
         let d = dx * dx + dy * dy;
         let distance = dist(a.position.x, a.position.y, b.position.x, b.position.y);
-        let delayOffset = 0;
+        let delayOffset = 10;
         let radiusSum = a.radius + b.radius + delayOffset;
         if (d - radiusSum * radiusSum > 0) {
             return null;
@@ -19,8 +19,8 @@ class Collision {
 
         let result = new CollisionManifold(depth, normal, contactPoint, a, b);
 
-        strokeWeight(10);
-        point(contactPoint);
+        /*strokeWeight(10);
+        point(contactPoint);*/
 
         return result;
     }
