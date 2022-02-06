@@ -15,7 +15,9 @@ let rk4step = 0.35;
 let rk4 = true;
 let pendulums = [];
 let reverse = false;
-
+let selectedPendulumOg;
+let selectedCount = 0;
+let counted = false;
 let island = new Island();
 let island2 = new Island();
 
@@ -70,7 +72,8 @@ function draw() {
 
     for(let i = 0; i < n; i++) {
         pendulums[i].update();
-        text(i + ": " + pendulums[i].moving, 100, 400+i*50);
+        fill('black');
+        text(i + ": " + round(pendulums[i].angle, 2), 100, 400+i*50);
     }
 
     if(algorithmCheck.checked) {
@@ -91,53 +94,15 @@ function handleCollisions() {
 
     detectCollisions();
     reverseDirections();
-    correctPositions();
     change();
+    correctPositions();
     resolveCollisions();
 
     collisionList = [];
-    selectedCollisionList = [];
 
 
 }
 
-//problem je sto se kada recimo povuces poslednja dva on detektuje koliziju medju njima i onda se uneprijatni, isto tako kada pustis ta dva uneprijatni se kod kolizije izmedju prva dva
-//ovde to ne pravi problem zbog ifa ali onda je neprijatno sto ne idu isto oba cvora + ako napravis nisam siguran da li je ovo fer zbog fizike ili je samo scam fix
-function detectCollisions2() {
-    let collision = new Collision();
-    let did = false;
-    for(let i = 0; i < n-1; i++) {
-        for(let j = i+1; j < n; j++) {
-            console.log(selectedPendulum);
-            if((selectedPendulum == 3 && !(i == 3 && j == 4)) || (selectedPendulum == 1 && !(i == 0 && j == 1))){
-                let result = collision.findCollisionFeatures(pendulums[i], pendulums[j]);
-                if(result != null) {
-                    if(!did && (selectedPendulum == i || selectedPendulum == j) &&
-                        ((result.c1.angle != 0 && selectedPendulum ==1) || (result.c2.angle != 0 && selectedPendulum ==3))){
-
-                        if(selectedPendulum == 3){
-                            selectedPendulum = 1;
-
-                        }
-                        else{
-                            selectedPendulum = 3;
-                        }
-                        console.log(selectedPendulum);
-                    }
-                    collisionList.push(result);
-                    break;
-                }
-
-            }
-        }
-    }
-    if(direction === "r") { //ovaj if wtf sto poredis da li je direction string
-        collisionList.reverse();
-    }
-
-}
-
-let selectedCollisionList = [];
 function detectCollisions() {
     let collision = new Collision();
 
@@ -151,20 +116,12 @@ function detectCollisions() {
                     collisionList.push(result);
                     break;
                 }
-                /*} else {
-                    let result = collision.findCollisionFeatures(pendulums[i], pendulums[j]);
-                    if(result != null) {
-                        selectedCollisionList.push(result);
-                        break;
-                    }
-                }*/
 
             }
         }
     }
-
-
-    text("selColNum: " + selectedCollisionList.length, 300, 400);
+    text("sel: " + selectedPendulum, 300, 600);
+    text("count: " + selectedCount, 300, 650);
     text("col num: " + collisionList.length, 300, 500);
 
     if(direction === "r") {
@@ -185,6 +142,8 @@ function correctPositions() {
             }
         }
     }
+
+
 }
 
 function resolveCollisions() {
@@ -194,7 +153,7 @@ function resolveCollisions() {
 }
 
 function reverseDirections() {
-    if(!directionLock && collisionList.length === Math.abs(n - 1 - selectedPendulum)) {
+    if(!directionLock && collisionList.length === Math.abs(n - selectedCount)) {
         if(direction === "r") {
             direction = "l";
         } else if(direction === "l") {
@@ -222,7 +181,7 @@ function applyImpulse2(manifold) {
 }
 
 function change() {
-    if(!selectionLock && collisionList.length === Math.abs(n - 1 - selectedPendulum)) {
+    if(!selectionLock && collisionList.length === Math.abs(n - selectedCount)) {
         selectedPendulum = n - 1 - selectedPendulum;
         for(let i = 0; i < n; i++) {
             if(pendulums[i].moving) {
@@ -230,6 +189,22 @@ function change() {
             }
         }
     }
+}
+
+function countSelected() {
+    if(!counted) {
+        if(direction === "l") {
+            for(let i = 0; i <= selectedPendulum; i++) {
+                selectedCount++;
+            }
+        } else if(direction === "r") {
+            for(let i = selectedPendulum; i < n; i++) {
+                selectedCount++;
+            }
+        }
+    }
+
+    counted = true;
 }
 
 function collisionLeftToRight(index) {
@@ -287,6 +262,8 @@ function collisionRightToLeft(index) {
     }
 }
 function mousePressed() {
+    counted = false;
+    selectedCount = 0;
     selected = false;
     released = false;
     selectedPendulum = -1;
@@ -300,6 +277,7 @@ function mousePressed() {
             selectionLock = true;
             selected = true;
             selectedPendulum = i;
+            selectedPendulumOg = i;
         }
     }
 }
@@ -361,6 +339,8 @@ function mouseReleased() {
             }
         }
     }
+
+    countSelected();
     directionLock = false;
     selectionLock = false;
     released = true;
