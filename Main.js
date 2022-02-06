@@ -11,12 +11,14 @@ let swingVelocity = 0;
 let dt = 1;
 let selectionLock = false;
 let friction = 1;
-let rk4step = 0.35;
+let rk4step = 0.2;
 let rk4 = true;
 let pendulums = [];
-let reverse = false;
+let inverse = false;
 let selectedPendulumOg;
 let selectedCount = 0;
+let selectedList = [];
+let selectedListInverse = [];
 let counted = false;
 let island = new Island();
 let island2 = new Island();
@@ -92,8 +94,6 @@ function draw() {
 let collisionLock = true;
 function handleCollisions() {
     detectCollisions();
-    /*change();
-    reverseDirections();*/
     change2();
     correctPositions();
     resolveCollisions();
@@ -101,10 +101,21 @@ function handleCollisions() {
     collisionList = [];
 }
 
+function inList(x, list) {
+    for(let i = 0; i < selectedCount; i++) {
+        if(list[i] === x) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 function detectCollisions() {
     let collision = new Collision();
 
-    text(direction, 200, 500);
+    text(direction, 200, 700);
     for(let i = 0; i < n-1; i++) {
         for (let j = i + 1; j < n; j++) {
             if(!((direction === "l" && i < selectedPendulum) || (direction === "r" && i >= selectedPendulum)))
@@ -120,50 +131,67 @@ function detectCollisions() {
     }
     text("sel: " + selectedPendulum, 300, 600);
     text("count: " + selectedCount, 300, 650);
-    text("col num: " + collisionList.length, 300, 500);
+    text("selected ids:", 300, 680);
+    invertSelected();
+    for(let i = 0; i < selectedCount; i++) {
+        text(selectedList[i], 300, 720 + i*40);
+        text(selectedListInverse[i], 400, 720+i*40);
+    }
 
     if(direction === "r") {
         collisionList.reverse();
     }
 }
 
-
-function reverseDirections() {
-    if(!directionLock && collisionList.length === Math.abs(n - selectedCount)) {
-        if(direction === "r") {
-            direction = "l";
-            text("WEEEEE", 200, 800);
-        } else if(direction === "l") {
-            direction = "r";
-        }
+function invertSelected() {
+    let newSelected = n - 1 - selectedPendulum;
+    for(let i = 0; i < selectedCount; i++) {
+        selectedListInverse.push(Math.abs(n - 1 - selectedList[i]));
     }
 }
-
-function change() {
-    if(!selectionLock && collisionList.length === Math.abs(n - selectedCount)) {
-        selectedPendulum = n - 1 - selectedPendulum;
-        for(let i = 0; i < n; i++) {
-            if(pendulums[i].moving) {
-                pendulums[i].moving = false;
-            }
-        }
-    }
-}
-
+let detected = 0;
 function change2() {
-    if(direction === "l") {
+    if(direction === "l" && selectedPendulum < n - 1) {
         if(pendulums[selectedPendulum].detectCollision(pendulums[selectedPendulum+1])) {
             if(!directionLock) {
+                text("njiii", 200, 900);
                 direction = "r";
             }
             if(!selectionLock) {
                 selectedPendulum = n - 1 - selectedPendulum;
             }
         }
-    } else if(direction === "r") {
+    } else if(direction === "r" &&  selectedPendulum > 0) {
         if(pendulums[selectedPendulum].detectCollision(pendulums[selectedPendulum-1])) {
             if(!directionLock) {
+                text("njiii22222", 200, 900);
                 direction = "l";
+
+            }
+            if(!selectionLock) {
+                selectedPendulum = n - 1 - selectedPendulum;
+            }
+        }
+    }
+}
+
+function change3() {
+    if(direction === "l" && selectedPendulum < n - 1) {
+        if(pendulums[selectedPendulum].detectCollision(pendulums[selectedPendulum+1])) {
+            if(!directionLock) {
+                text("njiii", 200, 900);
+                direction = "r";
+            }
+            if(!selectionLock) {
+                selectedPendulum = n - 1 - selectedPendulum;
+            }
+        }
+    } else if(direction === "r" &&  selectedPendulum > 0) {
+        if(pendulums[selectedPendulum].detectCollision(pendulums[selectedPendulum-1])) {
+            if(!directionLock) {
+                text("njiii22222", 200, 900);
+                direction = "l";
+
             }
             if(!selectionLock) {
                 selectedPendulum = n - 1 - selectedPendulum;
@@ -175,17 +203,28 @@ function change2() {
 function correctPositions() {
     if(!selectionLock) {
         for(let i = 0; i < collisionList.length; i++) {
-            if(!collisionList[i].c1.moving) {
-                swingAngle = collisionList[i].c1.angle;
-                collisionList[i].c1.angle -= swingAngle;
-            }
-            if(!collisionList[i].c2.moving) {
-                swingAngle = collisionList[i].c2.angle;
-                collisionList[i].c2.angle -= swingAngle;
-            }
+
+            text("hiiiiiii", 400, 400);
+            collisionList[i].c1.angle = 0;
+            text("hiiiiiii", 400, 430);
+            collisionList[i].c2.angle = 0;
+
         }
     }
 
+}
+
+function correctPositions2() {
+
+    for(let i = 0; i < selectedCount; i++) {
+        if(inverse) {
+            pendulums[selectedList[i]].angle = 0;
+            pendulums[selectedList[i]].angularVelocity = 0;
+        } else {
+            pendulums[selectedListInverse[i]].angle = 0;
+            pendulums[selectedListInverse[i]].angularVelocity = 0;
+        }
+    }
 }
 
 function resolveCollisions() {
@@ -209,8 +248,11 @@ function applyImpulse2(manifold) {
 
     manifold.c1.angularVelocity += w1;
     manifold.c2.angularVelocity -= w2;
-}
 
+    //manifold.c2.angle = manifold.c1.angle;
+
+    text(manifold.c1.id + " " + manifold.c2.id + "\na1: " + round(manifold.c1.angle, 2) + "\na2: " + round(manifold.c2.angle, 2), 200, 750);
+}
 
 function countSelected() {
     if(!counted) {
@@ -283,11 +325,14 @@ function countSelected() {
     }
 }*/
 function mousePressed() {
+    selectedList = [];
+    selectedListInverse = [];
     counted = false;
     selectedCount = 0;
     selected = false;
     released = false;
     selectedPendulum = -1;
+    inverse = false;
     for(let i = 0; i < n; i++) {
         pendulums[i].moving = false;
         pendulums[i].angularVelocity = 0;
@@ -332,6 +377,7 @@ function mouseDragged() {
                 let offset = (i - selectedPendulum) * pendulums[i].radius*2;
                 pendulums[i].drag(mouseX, mouseY, offset);
                 pendulums[i].moving = true;
+                selectedList.push(pendulums[i].id);
             }
         } else if (direction === "r") {
             for(let i = selectedPendulum; i < n; i++) {
@@ -339,6 +385,7 @@ function mouseDragged() {
                 let offset = (i - selectedPendulum) * pendulums[i].radius*2;
                 pendulums[i].drag(mouseX, mouseY, offset);
                 pendulums[i].moving = true;
+                selectedList.push(pendulums[i].id);
             }
         }
     }
@@ -370,6 +417,7 @@ function mouseReleased() {
 function restartSim() {
     pendulums = [];
     n = 5;
+    inverse = false;
     createCradle(5);
     for(let i = 0; i < n; i++) {
         pendulums[i].angularVelocity = 0;
@@ -386,6 +434,8 @@ function restartSim() {
     rk4 = true;
     algorithmCheck.checked = true;
     island.clear();
+    selectedList = [];
+    selectedListInverse = [];
     redraw();
 }
 

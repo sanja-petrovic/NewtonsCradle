@@ -119,7 +119,7 @@ class Pendulum {
         let dx = this.position.x - other.position.x;
         let dy = this.position.y - other.position.y;
         let d = dx * dx + dy * dy;
-        let delayOffset = 0;
+        let delayOffset = 1;
         let radiusSum = this.radius + other.radius + delayOffset;
         if (d < radiusSum * radiusSum) {
             return true;
