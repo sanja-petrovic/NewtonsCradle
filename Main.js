@@ -85,15 +85,54 @@ function draw() {
 
 }
 
+let collisionLock = true;
 function handleCollisions() {
+
     detectCollisions();
+    change();
+    reverseDirections();
     correctPositions();
     resolveCollisions();
 
-    change();
-    reverseDirections();
-
     collisionList = [];
+
+
+}
+
+//problem je sto se kada recimo povuces poslednja dva on detektuje koliziju medju njima i onda se uneprijatni, isto tako kada pustis ta dva uneprijatni se kod kolizije izmedju prva dva
+//ovde to ne pravi problem zbog ifa ali onda je neprijatno sto ne idu isto oba cvora + ako napravis nisam siguran da li je ovo fer zbog fizike ili je samo scam fix
+function detectCollisions2() {
+    let collision = new Collision();
+    let did = false;
+    for(let i = 0; i < n-1; i++) {
+        for(let j = i+1; j < n; j++) {
+            console.log(selectedPendulum);
+            if((selectedPendulum == 3 && !(i == 3 && j == 4)) || (selectedPendulum == 1 && !(i == 0 && j == 1))){
+                let result = collision.findCollisionFeatures(pendulums[i], pendulums[j]);
+                if(result != null) {
+                    if(!did && (selectedPendulum == i || selectedPendulum == j) &&
+                        ((result.c1.angle != 0 && selectedPendulum ==1) || (result.c2.angle != 0 && selectedPendulum ==3))){
+
+                        if(selectedPendulum == 3){
+                            selectedPendulum = 1;
+
+                        }
+                        else{
+                            selectedPendulum = 3;
+                        }
+                        console.log(selectedPendulum);
+                    }
+                    collisionList.push(result);
+                    break;
+                }
+
+            }
+        }
+    }
+    if(direction === "r") { //ovaj if wtf sto poredis da li je direction string
+        collisionList.reverse();
+    }
+
 }
 
 function detectCollisions() {
@@ -101,18 +140,24 @@ function detectCollisions() {
 
     for(let i = 0; i < n-1; i++) {
         for(let j = i+1; j < n; j++) {
-            let result = collision.findCollisionFeatures(pendulums[i], pendulums[j]);
-            if(result != null) {
-                collisionList.push(result);
-                break;
+            if(!((direction === "l" && i < selectedPendulum) || (direction === "r" && i >= selectedPendulum))) {
+                let result = collision.findCollisionFeatures(pendulums[i], pendulums[j]);
+                if(result != null) {
+                    collisionList.push(result);
+                    break;
+                }
             }
+
         }
     }
+
+
+    text(direction, 200, 500);
+    text("col num: " + collisionList.length, 300, 500);
 
     if(direction === "r") {
         collisionList.reverse();
     }
-
 }
 
 function correctPositions() {
@@ -162,7 +207,7 @@ function resolveCollisions() {
 }
 
 function reverseDirections() {
-    if(!directionLock) {
+    if(!directionLock && collisionList.length === n - 1 - selectedPendulum) {
         if(direction === "r") {
             direction = "l";
         } else if(direction === "l") {
@@ -202,7 +247,7 @@ function range(x) {
 }
 
 function change() {
-    if(!selectionLock) {
+    if(!selectionLock && collisionList.length === 4) {
         for(let i = n - 1 - selectedPendulum; i < n; i++) {
             pendulums[i].moving = false;
         }

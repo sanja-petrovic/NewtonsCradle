@@ -5,7 +5,7 @@ class Collision {
         let dy = a.position.y - b.position.y;
         let d = dx * dx + dy * dy;
         let distance = dist(a.position.x, a.position.y, b.position.x, b.position.y);
-        let delayOffset = 10;
+        let delayOffset = 0;
         let radiusSum = a.radius + b.radius + delayOffset;
         if (d - radiusSum * radiusSum > 0) {
             return null;
