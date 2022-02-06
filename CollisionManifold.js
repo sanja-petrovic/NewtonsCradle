@@ -7,5 +7,6 @@ class CollisionManifold {
         this.normal = normal;
         this.c1 = c1;
         this.c2 = c2;
+        this.id = c1.id + "" + c2.id;
     }
 }
