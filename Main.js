@@ -70,6 +70,7 @@ function draw() {
 
     for(let i = 0; i < n; i++) {
         pendulums[i].update();
+        text(i + ": " + pendulums[i].moving, 100, 400+i*50);
     }
 
     if(algorithmCheck.checked) {
@@ -89,12 +90,13 @@ let collisionLock = true;
 function handleCollisions() {
 
     detectCollisions();
-    change();
     reverseDirections();
     correctPositions();
+    change();
     resolveCollisions();
 
     collisionList = [];
+    selectedCollisionList = [];
 
 
 }
@@ -135,24 +137,34 @@ function detectCollisions2() {
 
 }
 
+let selectedCollisionList = [];
 function detectCollisions() {
     let collision = new Collision();
 
+    text(direction, 200, 500);
     for(let i = 0; i < n-1; i++) {
-        for(let j = i+1; j < n; j++) {
-            if(!((direction === "l" && i < selectedPendulum) || (direction === "r" && i >= selectedPendulum))) {
+        for (let j = i + 1; j < n; j++) {
+            if(!((direction === "l" && i < selectedPendulum) || (direction === "r" && i >= selectedPendulum)))
+            {
                 let result = collision.findCollisionFeatures(pendulums[i], pendulums[j]);
-                if(result != null) {
+                if (result != null) {
                     collisionList.push(result);
                     break;
                 }
-            }
+                /*} else {
+                    let result = collision.findCollisionFeatures(pendulums[i], pendulums[j]);
+                    if(result != null) {
+                        selectedCollisionList.push(result);
+                        break;
+                    }
+                }*/
 
+            }
         }
     }
 
 
-    text(direction, 200, 500);
+    text("selColNum: " + selectedCollisionList.length, 300, 400);
     text("col num: " + collisionList.length, 300, 500);
 
     if(direction === "r") {
@@ -175,31 +187,6 @@ function correctPositions() {
     }
 }
 
-function editCollisionList() {
-    if(selectedPendulum > 0 && direction === "l") {
-        for(let i = 0; i < collisionList.length; i++) {
-            if(collisionList[i].c1.id < selectedPendulum) {
-                collisionList[i].colliding = false;
-            }
-        }
-
-        return;
-    }
-
-    if(selectedPendulum < n-1 && direction === "r") {
-        for(let i = 0; i < collisionList.length; i++) {
-            if(collisionList[i].c1.id >= selectedPendulum) {
-                collisionList[i].colliding = false;
-            }
-        }
-
-        return;
-    }
-
-
-
-}
-
 function resolveCollisions() {
     for(let j = 0; j < collisionList.length; j++) {
         applyImpulse2(collisionList[j]);
@@ -207,7 +194,7 @@ function resolveCollisions() {
 }
 
 function reverseDirections() {
-    if(!directionLock && collisionList.length === n - 1 - selectedPendulum) {
+    if(!directionLock && collisionList.length === Math.abs(n - 1 - selectedPendulum)) {
         if(direction === "r") {
             direction = "l";
         } else if(direction === "l") {
@@ -232,27 +219,16 @@ function applyImpulse2(manifold) {
 
     manifold.c1.angularVelocity += w1;
     manifold.c2.angularVelocity -= w2;
-
-    if(range(manifold.c1.id)) {
-        pendulums[manifold.c1.id].moving = true;
-    }
-    if(range(manifold.c2.id)) {
-        pendulums[manifold.c2.id].moving = true;
-    }
-
-}
-
-function range(x) {
-    return (x >= (n - 1 - selectedPendulum) && x < n);
 }
 
 function change() {
-    if(!selectionLock && collisionList.length === 4) {
-        for(let i = n - 1 - selectedPendulum; i < n; i++) {
-            pendulums[i].moving = false;
-        }
+    if(!selectionLock && collisionList.length === Math.abs(n - 1 - selectedPendulum)) {
         selectedPendulum = n - 1 - selectedPendulum;
-
+        for(let i = 0; i < n; i++) {
+            if(pendulums[i].moving) {
+                pendulums[i].moving = false;
+            }
+        }
     }
 }
 
@@ -312,6 +288,7 @@ function collisionRightToLeft(index) {
 }
 function mousePressed() {
     selected = false;
+    released = false;
     selectedPendulum = -1;
     for(let i = 0; i < n; i++) {
         pendulums[i].moving = false;
@@ -355,27 +332,22 @@ function mouseDragged() {
                 pendulums[i].dragged = true;
                 let offset = (i - selectedPendulum) * pendulums[i].radius*2;
                 pendulums[i].drag(mouseX, mouseY, offset);
-                pendulums[i].moving = false;
+                pendulums[i].moving = true;
             }
         } else if (direction === "r") {
             for(let i = selectedPendulum; i < n; i++) {
                 pendulums[i].dragged = true;
                 let offset = (i - selectedPendulum) * pendulums[i].radius*2;
                 pendulums[i].drag(mouseX, mouseY, offset);
-                pendulums[i].moving = false;
+                pendulums[i].moving = true;
             }
-        }
-
-        if(island.circles.length > 1) {
-            island.setIndex(selectedPendulum);
-        } else {
-            island.clear();
         }
     }
 
 
 }
 
+let released = false;
 function mouseReleased() {
 
     if(selectionLock) {
@@ -391,6 +363,7 @@ function mouseReleased() {
     }
     directionLock = false;
     selectionLock = false;
+    released = true;
 }
 
 function restartSim() {
